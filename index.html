@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Depósito de fichas via PIX - Interior Poker Club">
+    <meta name="author" content="Interior Poker Club">
+    <meta name="robots" content="index, follow">
+    
+    <title>Depósito Interior - Poker Club</title>
+    
+    <!-- Google Fonts - Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' data:; script-src * 'self' 'unsafe-inline' 'unsafe-eval'; style-src * 'self' 'unsafe-inline';">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Step 1: Entrada de Telefone (Redesenhado similar à TIM) -->
+        <div id="step1" class="screen active">
+            <header>
+                <div class="logo">
+                    
+                </div>
+            </header>
+            
+            <main><bR>
+                <h1 class="centered-title">SEU JOGO NÃO ESPERA!</h1><br>
+               
+                <h2 class="centered-subtitle">Recarregue fichas em segundos com Pix e receba na hora.</h2>
+                <div class="input-group">
+                    <input type="tel" 
+                           id="phoneInput" 
+                           placeholder="(00) 00000-0000" 
+                           maxlength="15"
+                           required
+                           autocomplete="off">
+                           <h2>Digite seu número do telefone</h2>
+                </div>
+
+                <div id="error1" class="error-message" style="display: none;"></div>
+
+                <button type="button" class="btn btn-primary" id="btnStep1">
+                    <span class="btn-text">Continuar</span>
+                    <span class="btn-loader" style="display: none;">
+                        <div class="spinner"></div>
+                    </span>
+                </button>
+            </main>
+        </div>
+
+        <!-- Tela 2: Confirmação e Seleção de Valor -->
+        <div id="screen2" class="screen">
+                       
+            <div class="screen-content"><br>
+                <h1 class="centered-title">CONFIRME SEUS DADOS</h1><br>
+                
+                <div class="player-info" id="playerInfo"></div>
+
+                <!-- Esta div será escondida quando o PIX for gerado -->
+                <div id="valueSelectionArea" class="hide-on-pix">
+                    <h2 class="centered-subtitle">Digite o valor do seu depósito</h2>
+                    
+                    <div class="input-group">
+                        
+                        <div class="amount-input-wrapper">
+                            <span class="currency-symbol">R$</span>
+                            <input type="number" 
+                                   id="customAmount" 
+                                   placeholder="0,00" 
+                                   min="1" 
+                                   step="0.01" 
+                                   value="0">
+                        </div>
+                    </div>
+
+                    
+
+                    <div class="value-grid">
+                        <button type="button" class="value-btn" data-amount="10">+R$ 10</button>
+                        <button type="button" class="value-btn" data-amount="25">+R$ 25</button>
+                        <button type="button" class="value-btn" data-amount="50">+R$ 50</button>
+                        <button type="button" class="value-btn" data-amount="100">+R$ 100</button>
+                        <button type="button" class="value-btn" data-amount="200">+R$ 200</button>
+                        <button type="button" class="value-btn" data-amount="500">+R$ 500</button>
+                    </div>
+                </div>
+
+                <!-- Esta div será mostrada quando o PIX for gerado -->
+                <div id="pixArea" style="display:none;">
+                    
+                    <p>Copie o código PIX abaixo e efetue o pagamento em seu banco.</p>
+                    
+                    <div class="pix-code-container">
+                        <div class="pix-code" id="pixCode"></div>
+                        <button type="button" class="copy-btn" id="copyPixBtn">
+                            Copiar PIX
+                        </button>
+                    </div>
+                    
+                    <div class="payment-status">
+                        <div class="loading">
+                            <div class="payment-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" stroke="#FCA5A5"></circle>
+                                    <polyline class="minute-hand" points="12 6 12 12"></polyline> 
+                                    <polyline class="hour-hand" points="12 8 12 12"></polyline>
+                                </svg>
+                            </div>
+                            <span>Aguardando confirmação...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-note">
+                        <p>⏱️ O código PIX expira em 5 minutos</p><br>
+                        <p>💰 Após o pagamento, suas fichas serão creditadas automaticamente</p><br>
+                    </div>
+                </div>
+
+                <div id="error2" class="error-message" style="display: none;"></div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="generatePixBtn">Gerar PIX</button>
+                    <button type="button" class="btn btn-secondary" data-screen="step1">Voltar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela 3: Pagamento PIX -->
+        <div id="screen3" class="screen">
+                       
+            <div class="screen-content">
+                <h1>Realize o pagamento</h1>
+                <p>Copie o código PIX abaixo e efetue o pagamento em seu banco.</p>
+
+                <div class="pix-code-container">
+                    <div class="pix-code" id="pixCode"></div>
+                    <button type="button" class="copy-btn" id="copyPixBtn">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copiar</span>
+                    </button>
+                </div>
+
+                <div class="payment-status">
+                    <div class="loading" id="paymentLoading">
+                        <div class="spinner"></div>
+                        <span>Aguardando confirmação...</span>
+                    </div>
+                    <div class="success-message" id="paymentSuccess" style="display: none;">
+                        <span>✅ Pagamento confirmado!</span>
+                    </div>
+                </div>
+
+                <div class="info-note">
+                    <p>⏱️ O código PIX expira em 30 minutos</p>
+                    <p>💰 Após o pagamento, suas fichas serão creditadas automaticamente</p>
+                </div>
+
+                <button type="button" class="btn btn-secondary" data-screen="2">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/pix.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // Adicionando este script inline para modificar a forma como os dados do jogador são exibidos
+        document.addEventListener('DOMContentLoaded', function() {
+            // Função para preencher o card do jogador no formato horizontal
+            window.renderPlayerCard = function(playerData) {
+                return `
+                    <div class="player-header">
+                        <img src="${playerData.picture}" alt="${playerData.name}" class="player-photo">
+                        <div class="player-details">
+                            <p><strong>Nome:</strong> ${playerData.name}</p>
+                            <p><strong>ID Jogador:</strong> ${playerData.id}</p>
+                            <p><strong>Clube:</strong> ${playerData.nameClub}</p>
+                            <p><strong>Fichas atuais:</strong> ${playerData.coin}</p>
+                        </div>
+                    </div>
+                `;
+            };
+        });
+    </script>
+</body>
+</html>
